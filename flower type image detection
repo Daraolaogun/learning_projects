@@ -1,0 +1,183 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyNvz/8qigR/cRJ6cHheh3cp"
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "717IrwKgSxTr"
+      },
+      "outputs": [],
+      "source": [
+        "import matplotlib.pyplot as plt\n",
+        "import pandas as pd\n",
+        "import pylab as pl\n",
+        "import numpy as np\n",
+        "import math\n",
+        "import tensorflow as tf\n",
+        "import tensorflow_datasets as tfds\n",
+        "import os\n",
+        "import numpy as np\n",
+        "import glob\n",
+        "import shutil\n",
+        "import keras as ks\n",
+        "from tensorflow.keras.preprocessing.image import ImageDataGenerator"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "_URL = \"https://storage.googleapis.com/download.tensorflow.org/example_images/flower_photos.tgz\"\n",
+        "zip_file = tf.keras.utils.get_file(origin=_URL,\n",
+        "                                    fname=\"flowers_photos.tgz\",\n",
+        "                                    extract=True)\n",
+        "base_dir = os.path.join(os.path.dirname(zip_file), 'flower_photos')"
+      ],
+      "metadata": {
+        "id": "PdO2dkXiTFQm",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "8d87e4c8-3e19-42e2-c25b-e9dc9f6c65fb"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Downloading data from https://storage.googleapis.com/download.tensorflow.org/example_images/flower_photos.tgz\n",
+            "\u001b[1m228813984/228813984\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m2s\u001b[0m 0us/step\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "classes=['roses', 'daisy', 'dandelion', 'sunflowers', 'tulips' ]"
+      ],
+      "metadata": {
+        "id": "rpjWrdeRUIp4"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "for cl in classes:\n",
+        "  img_path = os.path.join(base_dir, cl)\n",
+        "  images = glob.glob(img_path+'/*.jpg')\n",
+        "  print(\"{}:{} Images\" .format(cl, len(images)))\n",
+        "  train, val = images[:round(len(images)*0.8)], images[round(len(images)*0.8):]"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "ZvLHP6YaVhCG",
+        "outputId": "32bed6f7-002d-419d-87b8-aded6e91b2a8"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "roses:641 Images\n",
+            "daisy:633 Images\n",
+            "dandelion:898 Images\n",
+            "sunflowers:699 Images\n",
+            "tulips:799 Images\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "for t in train:\n",
+        "  if not os.path.exists(os.path.join(base_dir,'train', cl)):\n",
+        "    os.makedirs(os.path.join(base_dir,'train', cl))\n",
+        "    shutil.move(t,os.path.join(base_dir,'train', cl))\n",
+        "\n",
+        "for v in val:\n",
+        "  if not os.path.exists(os.path.join(base_dir, 'val', cl)):\n",
+        "    os.makedirs(os.path.join(base_dir, 'val', cl))\n",
+        "    shutil.move(v, os.path.join(base_dir, 'val', cl))\n"
+      ],
+      "metadata": {
+        "id": "DpD8HNBzUQoT"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "train_dir = os.path.join(base_dir,'train')\n",
+        "val_dir = os.path.join(base_dir,'val')"
+      ],
+      "metadata": {
+        "id": "vWmQJ6Y2Wmvx"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "batch_size =100\n",
+        "\n",
+        "IMG_SHAPE = (100,150, 150, 3)"
+      ],
+      "metadata": {
+        "id": "P0aDBCD7XzlO"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "image_gen = ImageDataGenerator(rescale=1./255, horizontal_flip=True)\n",
+        "\n",
+        "train_data_gen = image_gen.flow_from_directory(train_dir,\n",
+        "                                               target_size=(150, 150),\n",
+        "                                               class_mode='categorical')"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "XM_q4EPO2TTm",
+        "outputId": "379b3883-d06e-4cba-b7d8-88568ed3cea3"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Found 1 images belonging to 1 classes.\n"
+          ]
+        }
+      ]
+    }
+  ]
+}
